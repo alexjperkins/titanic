@@ -5,18 +5,8 @@ import time
 from collections import deque
 from typing import ByteString, Callable, Coroutine, Deque, List, Union
 
-
-class Lock:
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        pass  # for now
-
-
-class Awaitable:
-    def __await__(self):
-        yield
+from . tasks import Task
+from . synchronization import Awaitable, Lock
 
 
 class Scheduler:
@@ -29,7 +19,7 @@ class Scheduler:
         self._write_waiting = {}
 
     @property
-    def busy(self) -> bool:
+    def is_busy(self) -> bool:
         return (
             self.ready or
             self._waiting or
@@ -85,7 +75,7 @@ class Scheduler:
         return sock.accept()
 
     def run(self) -> None:
-        while self.busy():
+        while self.is_busy():
             if not self.ready:
                 if self._waiting:
                     deadline, _, func, args = heapq.heappop(self._waiting)
@@ -118,19 +108,4 @@ class Scheduler:
             while self.ready:
                 func, args = self.ready.popleft()
                 func(*args)
-
-
-class Task:
-    def __init__(self, coro: Coroutine, scheduler: Scheduler):
-        self._coro = coro
-        self._scheduler = scheduler
-
-    def __call__(self):
-        try:
-            setattr(self._scheduler, 'current', self)
-            self._coro.send(None)  # prime the coroutine
-            if self._scheduler.current:
-                self._scheduler.call_soon(self)
-
-        except StopIteration:
             pass
