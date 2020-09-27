@@ -7,6 +7,10 @@
             "1": {
                   "host": "localhost",
                   "port": 8881
+            },
+            "2": {
+                  "host": "localhost",
+                  "port": 8882
             }
       }
 }
