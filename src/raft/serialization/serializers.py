@@ -1,13 +1,14 @@
 import pickle
+from typing import Any
 
 from .. interfaces import ISerializer
 
 
 class PickleSerializer(ISerializer):
     @classmethod
-    def serialize(cls, *, msg: str) -> bytes:  # type: ignore
-        return pickle.dumps(msg)  # type: ignore
+    def serialize(cls, *, msg: Any) -> bytes:
+        return pickle.dumps(msg)
 
     @classmethod
-    def deserialize(cls, *, msg: bytes) -> str:  # type: ignore
-        return pickle.loads(msg)  # type: ignore
+    def deserialize(cls, *, msg: bytes) -> Any:
+        return pickle.loads(msg)

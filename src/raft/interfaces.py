@@ -80,11 +80,11 @@ class ISocketFactory(abc.ABC):
 class ISerializer(abc.ABC):
 
     @abc.abstractclassmethod
-    def serialize(cls, msg: Any) -> Any:
+    def serialize(cls, *, msg: Any) -> bytes:
         pass
 
     @abc.abstractclassmethod
-    def deserialize(cls, msg: Any) -> Any:
+    def deserialize(cls, *, msg: bytes) -> Any:
         pass
 
 
