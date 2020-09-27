@@ -7,8 +7,8 @@ from typing import Any, Awaitable, Dict, Tuple
 from .. interfaces import (
     IAsyncNetwork, IConfig, ISerializer, ISocketFactory
 )
-from . import Address, NetworkMessage
-from .. sockets import AsyncSocketFactory
+from .. messaging.network import Address, NetworkMessage
+from .. sockets.factories import AsyncSocketFactory
 
 
 class AsyncNetwork(IAsyncNetwork):
@@ -47,7 +47,7 @@ class AsyncNetwork(IAsyncNetwork):
         self._loop.create_task(self._receiver_server())
 
     async def send(self, *, destination: Address, msg: NetworkMessage) -> None:
-        await self._outbound[destination.identification].put((self._address, msg))  # NOQA
+        await self._outbound[destination.identification].put(msg)  # NOQA
         self._loop.create_task(self._sender(destination))
 
     async def recv(self) -> Awaitable[NetworkMessage]:

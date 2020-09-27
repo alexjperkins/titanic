@@ -5,7 +5,7 @@ from types import MappingProxyType
 from typing import Any, Dict, Tuple
 
 from .. interfaces import IConfig
-from .. network import Address
+from .. messaging.network import Address
 from .. patterns import Singleton
 from .. config.exceptions import (
     MarshallJSONError,

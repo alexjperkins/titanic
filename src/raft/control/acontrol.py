@@ -2,7 +2,7 @@ import asyncio
 from typing import Any, Awaitable
 
 from .. interfaces import IConfig, IAsyncControl, IAsyncNetwork
-from .. network import Address, NetworkMessage
+from .. messaging.network import Address, NetworkMessage
 
 
 class AsyncControl(IAsyncControl):

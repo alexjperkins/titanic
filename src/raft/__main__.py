@@ -1,11 +1,19 @@
 import asyncio
 import random
+import sys
+from pathlib import Path
+
+root = Path(__file__).parent.absolute()
+sys.path.append(str(root))
+sys.path.append("..")
+sys.path.append(".")
 
 from . control import AsyncControl
 from . config import RaftConfig
-from . network import Address, AsyncNetwork
+from . messaging.network import Address
+from . network import AsyncNetwork
 from . serialization import PickleSerializer
-from . sockets import AsyncSocketFactory
+from . sockets.factories import AsyncSocketFactory
 
 
 SERVERS = {

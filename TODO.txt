@@ -2,4 +2,5 @@
 
  - Tests
  - Maintain connection status within the cluster
+ - Move NetworkMessage Creation
  - Move Address -> NetworkAddress

@@ -1,7 +1,7 @@
 import abc
 from typing import Any, Awaitable, Dict, List, Mapping, Tuple
 
-from . network import Address, NetworkMessage
+from . messaging.network import Address, NetworkMessage
 from . sockets.socket import Socket
 
 

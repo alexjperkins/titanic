@@ -13,7 +13,7 @@ class Address:
         return f"<Address: {self.host}:{self.port} [{self.identification}]>"
 
     def __str__(self):
-        return f"{self.identification} @ {self.host}:{self.port}"
+        return f"{self.identification}@{self.host}:{self.port}"
 
 
 @dataclass
@@ -27,7 +27,10 @@ class NetworkMessage:
         self.created_at = datetime.datetime.utcnow()
 
     def __repr__(self):
-        return f"<NetworkMessage: {self.source} {self.dest} {self.msg}>"
+        return (
+            f"<NetworkMessage: src:{self.source}, "
+            f"dest:{self.dest} msg:{self.msg}>"
+        )
 
     def __str__(self):
         return f"[{self.created_at}] {self.source} -> {self.dest}: {self.msg}"
