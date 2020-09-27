@@ -26,19 +26,11 @@ class AsyncControl(IAsyncControl):
         asyncio.create_task(self._network.start())
 
     async def send(self, *, destination: Address, msg: Any) -> None:
-        me = self._cfg.servers[self._identifier]
-        nmsg = NetworkMessage(
-            source=me, dest=destination, msg=msg
-        )
-        return await self._network.send(destination=destination, msg=nmsg)
+        return await self._network.send(destination=destination, msg=msg)
 
     async def broadcast(self, *, msg: Any) -> None:
-        me = self._cfg.servers[self._identifier]
         for _, destination in self._peers.items():
-            networkmsg = NetworkMessage(
-                source=me, dest=destination, msg=msg
-            )
-            await self._network.send(destination=destination, msg=networkmsg)
+            await self._network.send(destination=destination, msg=msg)
 
     async def recv(self) -> Awaitable[NetworkMessage]:
         return await self._network.recv()

@@ -47,7 +47,14 @@ class AsyncNetwork(IAsyncNetwork):
         self._loop.create_task(self._receiver_server())
 
     async def send(self, *, destination: Address, msg: NetworkMessage) -> None:
-        await self._outbound[destination.identification].put(msg)  # NOQA
+
+        network_msg = NetworkMessage(
+            source=self._address,
+            dest=destination,
+            msg=msg
+        )
+
+        await self._outbound[destination.identification].put(network_msg)  # NOQA
         self._loop.create_task(self._sender(destination))
 
     async def recv(self) -> Awaitable[NetworkMessage]:
@@ -57,6 +64,8 @@ class AsyncNetwork(IAsyncNetwork):
         while True:
 
             msg = await self._outbound[destination.identification].get()
+
+            print("sending:", msg)
 
             if destination.identification not in self._connections:
                 client_socket = self._socket_factory.build_write_socket()
