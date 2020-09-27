@@ -19,18 +19,18 @@ class AsyncNetwork:
         identifier: Any,
         address: Address,
         config: IConfig,
-        loop,
+        loop: asyncio.BaseEventLoop,
         serializer: ISerializer,
         socket_factory: ISocketFactory = AsyncSocketFactory,  # type: ignore
         max_buffer_size: int = 4096,
     ):
         self._identifier = identifier
         self._address = address
+        self._config = config
         self._loop = loop
         self._socket_factory = socket_factory
         self._serializer = serializer
         self._max_buffer_size = max_buffer_size
-        self._config = config
 
         self._connections: Dict[int, socket.SocketType] = {}
         self._cluster = self._config.servers

@@ -1,16 +1,17 @@
 import functools
-import socket
+
 from typing import Tuple
 
 from .. interfaces import ISocketFactory
+from . import socket
 
 
 class SocketFactory(ISocketFactory):
     @classmethod
-    def build_read_socket(cls, *, address: Tuple[str, int], blocking=True):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def build_read_socket(cls, *, host: str, port: int, blocking=True):
+        sock = socket.Socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
-        sock.bind(address)
+        sock.bind(host=host, port=port)
         sock.listen(1)
         sock.setblocking(blocking)
         return sock

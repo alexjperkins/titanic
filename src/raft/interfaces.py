@@ -64,7 +64,7 @@ class IState(abc.ABC):
 class ISocketFactory(abc.ABC):
 
     @abc.abstractclassmethod
-    def build_read_socket(cls, *, address: Tuple[str, int], blocking: bool = False):
+    def build_read_socket(cls, *, host: str, port: int, blocking: bool = False):
         pass
 
     @abc.abstractclassmethod
