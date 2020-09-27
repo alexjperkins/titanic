@@ -2,7 +2,6 @@ import asyncio
 import collections
 import logging
 import socket
-from dataclasses import dataclass
 from typing import Any, Dict, Tuple
 
 from .. interfaces import IAsyncNetwork, IConfig, IMessage, ISerializer, ISocketFactory
@@ -12,7 +11,7 @@ Address = Tuple[str, int]
 NetworkMessage = Tuple[Address, IMessage]
 
 
-class AsyncNetwork:
+class AsyncNetwork(IAsyncNetwork):
     def __init__(
         self,
         *,
@@ -49,12 +48,15 @@ class AsyncNetwork:
     async def start(self):
         self._loop.create_task(self._receiver_server())
 
-    async def send(self, *, destination: int, msg: IMessage):
+    async def send(self, *, destination: int, msg: str):
         await self._outbound[destination].put((self._address, msg))
         self._loop.create_task(self._sender(destination))
 
-    async def recv(self) -> NetworkMessage:
+    async def recv(self):
         return await self._inbound.get()
+
+    async def close(self):
+        ...
 
     async def _sender(self, destination: int):
         while True:

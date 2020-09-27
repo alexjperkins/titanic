@@ -25,7 +25,7 @@ class INetwork(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def send(self, *, destination: str, msg: str) -> None:
+    def send(self, *, destination: int, msg: str) -> None:
         pass
 
     @abc.abstractmethod
@@ -45,7 +45,11 @@ class IAsyncNetwork(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def send(self, *, destination: str, msg: str) -> None:
+    async def close(self):
+        pass
+
+    @abc.abstractmethod
+    async def send(self, *, destination: int, msg: str) -> None:
         pass
 
     @abc.abstractmethod
