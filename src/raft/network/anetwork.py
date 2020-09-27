@@ -65,8 +65,6 @@ class AsyncNetwork(IAsyncNetwork):
 
             msg = await self._outbound[destination.identification].get()
 
-            print("sending:", msg)
-
             if destination.identification not in self._connections:
                 client_socket = self._socket_factory.build_write_socket()
                 try:
