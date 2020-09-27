@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any, Awaitable
 
-from .. interfaces import IConfig, IAsyncControl, IAsyncNetwork, IMessage
+from .. interfaces import IConfig, IAsyncControl, IAsyncNetwork
 from .. network import Address, NetworkMessage
 
 
@@ -25,18 +25,18 @@ class AsyncControl(IAsyncControl):
     async def start(self) -> None:
         asyncio.create_task(self._network.start())
 
-    async def send(self, *, destination: Address, msg: Any):
+    async def send(self, *, destination: Address, msg: Any) -> None:
         me = self._cfg.servers[self._identifier]
         nmsg = NetworkMessage(
-            source=me, destination=destination, msg=msg
+            source=me, dest=destination, msg=msg
         )
         return await self._network.send(destination=destination, msg=nmsg)
 
-    async def broadcast(self, *, msg: Any):
+    async def broadcast(self, *, msg: Any) -> None:
         me = self._cfg.servers[self._identifier]
         for _, destination in self._peers.items():
             networkmsg = NetworkMessage(
-                source=me, destination=destination, msg=msg
+                source=me, dest=destination, msg=msg
             )
             await self._network.send(destination=destination, msg=networkmsg)
 
