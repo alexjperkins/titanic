@@ -70,7 +70,8 @@ def build_config_from_yaml(filepath: str) -> "RaftConfig":
 def build_config_from_json(filepath: str) -> "RaftConfig":
     with open(filepath, 'r') as f:
         try:
-            cfg = RaftConfig(**json.load(f))
+            marshalled_data = _marshall_json(**json.load(f))
+            cfg = RaftConfig(**marshalled_data)
 
         except TypeError:
             logger.error('failed to marshall json', exc_info=True)
