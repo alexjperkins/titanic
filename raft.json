@@ -1,0 +1,12 @@
+{
+      "servers": {
+            "0": {
+                  "host": "localhost",
+                  "port": 8880
+            },
+            "1": {
+                  "host": "localhost",
+                  "port": 8881
+            }
+      }
+}
