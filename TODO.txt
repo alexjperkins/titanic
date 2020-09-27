@@ -1,0 +1,8 @@
+1. async RPC server
+
+ - Must listen to a socket
+ - Must be able to send a message to a single node
+ - Must be able to broadcast to an entire cluster
+ - Tested
+ - Move Messages betwween an inbound and outbound queue
+ - Maybe maintain connection status within the cluster?
