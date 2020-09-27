@@ -5,14 +5,12 @@ from types import MappingProxyType
 from typing import Any, Dict, Tuple
 
 from .. interfaces import IConfig
+from .. messaging.network import Address
 from .. patterns import Singleton
 from .. config.exceptions import (
     MarshallJSONError,
     MarshallYAMLError,
 )
-
-
-Address = Tuple[str, int]
 
 
 logger = logging.getLogger(__file__)
@@ -22,7 +20,7 @@ def _marshall_yaml(data: Dict) -> Dict:
     marshalled_data = data
     marshalled_servers: Dict[int, Address] = {}
 
-    for key, address in data['servers'].items():
+    for identification, address in data['servers'].items():
         try:
             host, port = address.split(':')
         except ValueError:
@@ -30,7 +28,11 @@ def _marshall_yaml(data: Dict) -> Dict:
             raise MarshallYAMLError
 
         marshalled_servers.update(
-            {key: (host, int(port))}
+            {
+                identification: Address(
+                    host=host, port=port, identification=identification
+                )
+            }
         )
 
     marshalled_data.update({'servers': marshalled_servers})
@@ -41,9 +43,14 @@ def _marshall_json(data: Dict) -> Dict:
     marshalled_data = data
     marshalled_servers: Dict[int, Address] = {}
 
-    for key, address in data['servers'].items():
+    for identification, address in data['servers'].items():
         marshalled_servers.update(
-            {key: (address['host'], int(address['port']))}
+            {
+                identification: Address(
+                    host=address['host'], port=int(address['port']),
+                    identification=identification
+                )
+            }
         )
 
     marshalled_data.update({'servers': marshalled_servers})

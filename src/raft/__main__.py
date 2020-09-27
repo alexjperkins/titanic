@@ -1,12 +1,19 @@
 import asyncio
 import random
-import time
+import sys
+from pathlib import Path
+
+root = Path(__file__).parent.absolute()
+sys.path.append(str(root))
+sys.path.append("..")
+sys.path.append(".")
 
 from . control import AsyncControl
 from . config import RaftConfig
+from . messaging.network import Address
 from . network import AsyncNetwork
 from . serialization import PickleSerializer
-from . sockets import AsyncSocketFactory
+from . sockets.factories import AsyncSocketFactory
 
 
 SERVERS = {
@@ -17,10 +24,21 @@ SERVERS = {
 
 
 def bootstrap(iden: int, loop) -> AsyncControl:
-    cfg = RaftConfig(servers=SERVERS)
+
+    servers = {
+        k: Address(*v, identification=k) for k, v in
+        SERVERS.items()
+    }
+
+    cfg = RaftConfig(
+        servers=servers
+    )
+
+    host, port = SERVERS[iden]
+    address = Address(host=host, port=int(port), identification=iden)
+
     net = AsyncNetwork(
-        identifier=iden,
-        address=SERVERS[iden],
+        address=address,
         config=cfg,  # type: ignore
         loop=loop,
         socket_factory=AsyncSocketFactory,  # type: ignore
@@ -54,7 +72,8 @@ async def main():
 
     while True:
         salt = random.randint(0, 10000)
-        await controller.broadcast(msg=f"{time.monotonic()}: {salt}")
+        msg = f"{salt}"
+        await controller.broadcast(msg=msg)
         to_sleep = random.randint(1, 5)
         await asyncio.sleep(to_sleep)
 

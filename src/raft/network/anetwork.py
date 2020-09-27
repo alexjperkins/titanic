@@ -2,20 +2,19 @@ import asyncio
 import collections
 import logging
 import socket
-from typing import Any, Dict, Tuple
+from typing import Any, Awaitable, Dict, Tuple
 
-from .. interfaces import IAsyncNetwork, IConfig, IMessage, ISerializer, ISocketFactory
-from .. sockets import AsyncSocketFactory
-
-Address = Tuple[str, int]
-NetworkMessage = Tuple[Address, IMessage]
+from .. interfaces import (
+    IAsyncNetwork, IConfig, ISerializer, ISocketFactory
+)
+from .. messaging.network import Address, NetworkMessage
+from .. sockets.factories import AsyncSocketFactory
 
 
 class AsyncNetwork(IAsyncNetwork):
     def __init__(
         self,
         *,
-        identifier: Any,
         address: Address,
         config: IConfig,
         loop: asyncio.BaseEventLoop,
@@ -23,7 +22,6 @@ class AsyncNetwork(IAsyncNetwork):
         socket_factory: ISocketFactory = AsyncSocketFactory,  # type: ignore
         max_buffer_size: int = 4096,
     ):
-        self._identifier = identifier
         self._address = address
         self._config = config
         self._loop = loop
@@ -42,90 +40,89 @@ class AsyncNetwork(IAsyncNetwork):
         self._log = logging.getLogger(__file__)
 
     @property
-    def identification(self) -> Any:
-        return self._identifier
+    def identification(self) -> int:
+        return self._address.identification
 
-    async def start(self):
+    async def start(self) -> None:
         self._loop.create_task(self._receiver_server())
 
-    async def send(self, *, destination: int, msg: str):
-        await self._outbound[destination].put((self._address, msg))
+    async def send(self, *, destination: Address, msg: NetworkMessage) -> None:
+
+        network_msg = NetworkMessage(
+            source=self._address,
+            dest=destination,
+            msg=msg
+        )
+
+        await self._outbound[destination.identification].put(network_msg)  # NOQA
         self._loop.create_task(self._sender(destination))
 
-    async def recv(self):
+    async def recv(self) -> Awaitable[NetworkMessage]:
         return await self._inbound.get()
 
-    async def close(self):
-        ...
-
-    async def _sender(self, destination: int):
+    async def _sender(self, destination: Address):
         while True:
-            msg = await self._outbound[destination].get()
-            if destination not in self._connections:
+
+            msg = await self._outbound[destination.identification].get()
+
+            if destination.identification not in self._connections:
                 client_socket = self._socket_factory.build_write_socket()
                 try:
                     await self._loop.sock_connect(
-                        client_socket, self._cluster[destination]
+                        client_socket, (destination.host, destination.port)
                     )
 
                 except (IOError, socket.error):
                     self._log.warning(
-                        "Connection to %s failed",
-                        self._cluster[destination], exc_info=True
+                        "Connection to %s failed", destination, exc_info=True
                     )
                     continue
 
                 except Exception:
                     self._log.error(
-                        "Connection to %s failed",
-                        self._cluster[destination], exc_info=True
+                        "Connection to %s failed", destination, exc_info=True
                     )
                     continue
 
                 else:
-                    self._connections[destination] = client_socket
+                    self._connections[destination.identification] = client_socket  # NOQA
 
             serialized_msg = self._serializer.serialize(msg=msg)
 
             try:
                 await self._loop.sock_sendall(
-                    self._connections[destination], serialized_msg
+                    self._connections[destination.identification], serialized_msg  # NOQA
                 )
 
             except IOError:
-                self._log.warning(
-                    "Failed to send %r to %d", msg, destination, exc_info=True
-                )
-                self._connections[destination].close()
-                del self._connections[destination]
+                self._log.warning("Failed to send %r", msg, exc_info=True)
+                self._close_connection(destination)
 
             except Exception:
-                self._log.error(
-                    "Failed to send %r to %d", msg, destination, exc_info=True
-                )
-                self._connections[destination].close()
-                del self._connections[destination]
+                self._log.error("Failed to send %r", msg, exc_info=True)
+                self._close_connection(destination)
 
             else:
-                self._log.info("sent %r to %d", msg, destination)
+                self._log.info("sent %r")
 
     async def _receiver_server(self):
         server_socket = self._socket_factory.build_read_socket(
-            address=self._address
+            host=self._address.host,
+            port=self._address.port
         )
 
         self._log.info(
             "%s receiver server starting on %s",
-            self._identifier, self._address
+            self.identification, self._address
         )
 
         while True:
             client, addr = await self._loop.sock_accept(server_socket)
             self._log.info("connection made from %s", addr)
 
-            self._loop.create_task(self._reciever(client, addr))
+            self._loop.create_task(self._reciever(client))
 
-    async def _reciever(self, client, addr):
+    async def _reciever(self, client):
         while True:
             # we should close the socket here, and reconnect
             msg = b""
@@ -139,6 +136,10 @@ class AsyncNetwork(IAsyncNetwork):
                     break
 
             deserialized_msg = self._serializer.deserialize(msg=msg)
-            self._log.info("received msg %s from %s", msg, addr)
+            self._log.info("received msg %s")
 
-            await self._inbound.put((self._identifier, deserialized_msg))
+            await self._inbound.put(deserialized_msg)
+
+    def _close_connection(self, destination: Address) -> None:
+        self._connections[destination.identification].close()
+        del self._connections[destination.identification]
