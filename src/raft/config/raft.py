@@ -30,7 +30,7 @@ def _marshall_yaml(data: Dict) -> Dict:
         marshalled_servers.update(
             {
                 identification: Address(
-                    host=host, port=port, identification=identification
+                    host=host, port=int(port), identification=identification
                 )
             }
         )
@@ -60,16 +60,18 @@ def _marshall_json(data: Dict) -> Dict:
 def build_config_from_yaml(filepath: str) -> "RaftConfig":
     with open(filepath, 'r') as s:
         try:
-            marshalled_data = _marshall_yaml(**yaml.safe_load(s))
+            marshalled_data = _marshall_yaml(data=yaml.safe_load(s))
             cfg = RaftConfig(**marshalled_data)
 
         except TypeError:
             logger.error('failed to marshall yaml', exc_info=True)
+            raise
 
         except yaml.YAMLError:
             logger.error(
                 'failed to load %s as a JSON file', filepath, exc_info=True
             )
+            raise
 
         return cfg
 
@@ -77,7 +79,7 @@ def build_config_from_yaml(filepath: str) -> "RaftConfig":
 def build_config_from_json(filepath: str) -> "RaftConfig":
     with open(filepath, 'r') as f:
         try:
-            marshalled_data = _marshall_json(**json.load(f))
+            marshalled_data = _marshall_json(data=json.load(f))
             cfg = RaftConfig(**marshalled_data)
 
         except TypeError:

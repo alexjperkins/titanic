@@ -1,0 +1,10 @@
+#!/bin/bash
+
+
+set -o errexit
+set -o nounset
+
+
+echo "starting raft server: $IDENTIFIER"
+echo $RAFT_PORT
+python -m raft $IDENTIFIER

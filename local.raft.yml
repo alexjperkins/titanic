@@ -1,0 +1,60 @@
+version: '3'
+
+
+# Raft Servers
+services:
+  raft_0:
+    environment:
+      - IDENTIFIER=0
+      - RAFT_CONFIG_PATH=/cfg.yaml
+      - RAFT_USE_DOCKER=1  # True
+      - RAFT_PORT=8880
+    build:
+      context: .
+      dockerfile: ./compose/local/raft/Dockerfile
+    image: titanic_local_raft
+    volumes:
+      - ./src/raft:/src/raft
+      - ./tests:/tests
+      - ./raftcfg.yaml:/cfg.yaml
+    ports:
+      - "8880:8880"
+    command: /start
+
+  raft_1:
+    environment:
+      - IDENTIFIER=1
+      - RAFT_CONFIG_PATH=/cfg.yaml
+      - RAFT_USE_DOCKER=1  # True
+      - RAFT_PORT=8881
+    build:
+      context: .
+      dockerfile: ./compose/local/raft/Dockerfile
+    image: titanic_local_raft
+    volumes:
+      - ./src/raft:/src/raft
+      - ./raftcfg.yaml:/cfg.yaml
+    depends_on:
+      - raft_0
+    ports:
+      - "8881:8881"
+    command: /start
+
+  raft_2:
+    environment:
+      - IDENTIFIER=2
+      - RAFT_CONFIG_PATH=/cfg.yaml
+      - RAFT_USE_DOCKER=1  # True
+      - RAFT_PORT=8882
+    build:
+      context: .
+      dockerfile: ./compose/local/raft/Dockerfile
+    image: titanic_local_raft
+    volumes:
+      - ./src/raft:/src/raft
+      - ./raftcfg.yaml:/cfg.yaml
+    depends_on:
+      - raft_0
+    ports:
+      - "8882:8882"
+    command: /start

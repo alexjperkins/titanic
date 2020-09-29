@@ -74,17 +74,18 @@ class AsyncNetwork(IAsyncNetwork):
 
                 except (IOError, socket.error):
                     self._log.warning(
-                        "Connection to %s failed", destination, exc_info=True
+                        "Connection %s -> %s failed", self._address, destination, exc_info=True  # NOQA
                     )
                     continue
 
                 except Exception:
-                    self._log.error(
-                        "Connection to %s failed", destination, exc_info=True
+                    self._log.warning(
+                        "Connection %s -> %s failed", self._address, destination, exc_info=True  # NOQA
                     )
                     continue
 
                 else:
+                    self._log.info('connection made to %s', destination)
                     self._connections[destination.identification] = client_socket  # NOQA
 
             serialized_msg = self._serializer.serialize(msg=msg)
@@ -111,7 +112,7 @@ class AsyncNetwork(IAsyncNetwork):
             port=self._address.port
         )
 
-        self._log.info(
+        self._log.warning(
             "%s receiver server starting on %s",
             self.identification, self._address
         )
