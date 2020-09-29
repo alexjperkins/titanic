@@ -29,12 +29,11 @@ SERVERS = {
 def bootstrap(iden: int, loop) -> AsyncControl:
 
     servers = {
-        k: Address(h, int(p), identification=k) for k, (h, p) in
+        iden: Address(*address, identification=iden) for iden, address in
         SERVERS.items()
     }
 
     if os.environ.get('RAFT_USE_DOCKER', False):
-        print('building raft cfg from yaml...')
         builder_mapping = {
             "json": build_config_from_json,
             "yaml": build_config_from_yaml
@@ -43,11 +42,12 @@ def bootstrap(iden: int, loop) -> AsyncControl:
         cfg_path = os.environ['RAFT_CONFIG_PATH']
         extension = cfg_path.split('.')[-1]
 
+        print(f'building raft cfg from {cfg_path}...')
         cfg_builder = builder_mapping[extension]
         cfg = cfg_builder(filepath=cfg_path)
 
     else:
-        print('building raft cfg from code...')
+        print('building raft cfg...')
         cfg = RaftConfig(
             servers=servers
         )
