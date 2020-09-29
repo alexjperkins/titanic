@@ -1,5 +1,6 @@
 import asyncio
 import random
+import os
 import sys
 from pathlib import Path
 
@@ -9,7 +10,9 @@ sys.path.append("..")
 sys.path.append(".")
 
 from . control import AsyncControl
-from . config import RaftConfig
+from . config import (
+    RaftConfig, build_config_from_json, build_config_from_yaml
+)
 from . messaging.network import Address
 from . network import AsyncNetwork
 from . serialization import PickleSerializer
@@ -26,16 +29,31 @@ SERVERS = {
 def bootstrap(iden: int, loop) -> AsyncControl:
 
     servers = {
-        k: Address(*v, identification=k) for k, v in
+        iden: Address(*address, identification=iden) for iden, address in
         SERVERS.items()
     }
 
-    cfg = RaftConfig(
-        servers=servers
-    )
+    if os.environ.get('RAFT_USE_DOCKER', False):
+        builder_mapping = {
+            "json": build_config_from_json,
+            "yaml": build_config_from_yaml
+        }
 
-    host, port = SERVERS[iden]
-    address = Address(host=host, port=int(port), identification=iden)
+        cfg_path = os.environ['RAFT_CONFIG_PATH']
+        extension = cfg_path.split('.')[-1]
+
+        print(f'building raft cfg from {cfg_path}...')
+        cfg_builder = builder_mapping[extension]
+        cfg = cfg_builder(filepath=cfg_path)
+
+    else:
+        print('building raft cfg...')
+        cfg = RaftConfig(
+            servers=servers
+        )
+
+    address = cfg.servers[iden]
+    print('raft server starting @', address)
 
     net = AsyncNetwork(
         address=address,
